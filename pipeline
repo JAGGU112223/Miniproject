@@ -1,0 +1,38 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('cloning') {
+            steps {
+              git 'https://github.com/JAGGU112223/Miniproject.git'
+            }
+        }
+        stage('build stage') {
+            steps {
+               sh 'cd /var/lib/jenkins/workspace/Miniproject1'
+               sh 'sudo docker build -t jagadish143/miniproject1 .'
+            }
+        }
+        stage('login stage') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'e8f5f46d-3bb4-43b9-b01a-11007b03871e',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                }
+            }
+        }
+        stage('docker push stage') {
+            steps {
+               sh 'docker push jagadish143/miniproject1:latest'
+            }
+        }
+        stage('Deploy the Image in Docker Engine') {
+            steps {
+                sh 'docker run -itd --name mini -p 61:80 jagadish143/miniproject1:latest'
+            }
+        }
+    }
+}
